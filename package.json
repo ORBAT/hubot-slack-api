@@ -1,0 +1,42 @@
+{
+  "name": "hubot-slack-api",
+  "version": "1.0.0",
+  "description": "Slack API call extension for Hubot",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ORBAT/hubot-slack-api.git"
+  },
+  "keywords": [
+    "hubot",
+    "slack",
+    "api",
+    "wrapper",
+    "extension"
+  ],
+  "author": "Tom Eklöf <tome@unity3d.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ORBAT/hubot-slack-api/issues"
+  },
+  "homepage": "https://github.com/ORBAT/hubot-slack-api#readme",
+  "dependencies": {
+    "bluebird": "^2.9.30",
+    "lodash": "^3.10.0",
+    "request": "^2.58.0"
+  },
+  "peerDependencies": {
+    "hubot": "^2.13.2",
+    "hubot-slack": "^3.3.0"
+  },
+  "devDependencies": {
+    "mocha": "2.x",
+    "chai": "1.x",
+    "sinon": "1.x",
+    "blanket": "1.x",
+    "sinon-chai": "2.x",
+    "mocha-sinon": "1.x",
+    "chai-as-promised": "4.x",
+    "sinon-as-promised": "2.x"
+  }
+}
