@@ -1,6 +1,6 @@
 {
   "name": "hubot-slack-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Slack API call extension for Hubot",
   "main": "index.js",
   "repository": {
@@ -38,5 +38,6 @@
     "mocha-sinon": "1.x",
     "chai-as-promised": "4.x",
     "sinon-as-promised": "2.x"
-  }
+  },
+  "scripts": {}
 }
