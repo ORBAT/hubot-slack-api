@@ -2,7 +2,7 @@
 //   hubot-slack-api is a Slack web API call extension for Hubot that adds new methods to your Robot instance
 //
 // Dependencies:
-//   hubot-slack: ^3.3.0
+//   hubot: ^2.13.0
 //
 // Configuration:
 //   HUBOT_SLACK_API_TOKEN

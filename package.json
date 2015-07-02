@@ -26,8 +26,7 @@
     "request": "^2.58.0"
   },
   "peerDependencies": {
-    "hubot": "^2.13.2",
-    "hubot-slack": "^3.3.0"
+    "hubot": "^2.13.2"
   },
   "devDependencies": {
     "mocha": "2.x",
