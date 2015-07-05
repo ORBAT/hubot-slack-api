@@ -52,7 +52,17 @@ module.exports = function(robot) {
         var callName = v.join('.');
         this.logger.debug("Doing Slack API call to " + callName + " with args " +
                           inspect(_.defaults(_.omit(args, "token"), {token: "[CENSORED]"})));
-        return req.postAsync(postUrl + callName, {form: _.defaults(args, {token: token})}).spread(function (res, body) {
+        return req.postAsync(postUrl + callName, {form: _.defaults(args, {token: token})})
+          .spread(function(res, body) {
+            return JSON.parse(body);
+          })
+          .then(function (body) {
+
+          if(!body.ok) {
+            this.logger.error("Error calling " + callName + ": " + body.error);
+            throw new Error(body.error);
+          }
+
           this.logger.debug("Slack API call to " + callName + " ok");
           return body;
         }.bind(this)).nodeify(callback);
