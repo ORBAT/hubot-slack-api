@@ -80,10 +80,6 @@ else
 
 var slack = require("../index").generateApiCalls(null, argv.token, {logger: {debug: debug, error: error}});
 
-// NOTE: if the pointer part of --param doesn't have a slash at the beginning, add a slash
-
-debug(inspect(argv));
-
 var cmd = argv._[0];
 
 var fn = _.get(slack, cmd);
@@ -98,19 +94,15 @@ if (_.isArray(argv.filter) && argv.filter.length > 2) {
   process.exit(ERR_ARG);
 }
 
-debug("API method", cmd);
-
 function pickUsingPtrs(obj, ptrs) {
   if (!_.isArray(ptrs)) ptrs = [ptrs];
 
-  debug("pickUsingPtrs", inspect(ptrs));
   if (!ptrs || !ptrs.length)
     return obj;
 
   return _.reduce(ptrs, function (acc, ptr) {
     ptr = addSlash(ptr);
     var res = iter(obj, ptr);
-    debug("Including", ptr, "as", inspect(res), "from", inspect(obj));
     return acc.concat(res);
   }, []);
 }
@@ -127,12 +119,9 @@ function textify(obj) {
 function paramsToObj(params) {
   if (!_.isArray(params)) params = [params];
 
-  debug("paramsToObj", inspect(params));
   return _(params).chunk(2).reduce(function (acc, ptrAndVal) {
     var ptr = ptrAndVal[0], val = ptrAndVal[1];
     ptr = addSlash(ptr);
-    debug("Adding", ptr, val, "into", inspect(acc));
-
     var v = parseVal(val);
     jp.set(acc, ptr, v);
 
@@ -140,9 +129,9 @@ function paramsToObj(params) {
   }, {});
 }
 
-var paramsFromOpts = argv.param ? paramsToObj(argv.param) : {};
+var paramsFromOpts = argv.param ? paramsToObj(argv.param) : {}; // allow not having any call parameters
 
-debug("paramsFromOpts", inspect(paramsFromOpts));
+debug("Calling API method", cmd," with parameters ", inspect(paramsFromOpts));
 
 fn(paramsFromOpts)
   .catch(function (e) {
@@ -150,6 +139,7 @@ fn(paramsFromOpts)
     process.exit()
   })
   .then(function (out) {
+    debug("API call successful");
     if (!out.ok) {
       error("API call returned error:", inspect(out));
       process.exit(ERR_API);
