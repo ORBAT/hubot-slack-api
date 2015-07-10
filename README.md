@@ -7,3 +7,7 @@ hubot-slack-api is a [Slack web API](https://api.slack.com/methods) call extensi
 The API key is read from either the `HUBOT_SLACK_TOKEN` environment variable that `hubot-slack` uses, or – if you want to use a separate API key – you can either use the `HUBOT_SLACK_API_TOKEN` env variable *or* give the token in the `token` key in the argument object.
 
 To use it, run `npm install --save hubot-slack-api` and add `hubot-slack-api` to your `external-scripts.json`.
+
+# slackage
+
+slackage is a command line tool for making Slack web API calls (and not just message sending, but the whole API is supported). Read more [here](bin/README.md).
