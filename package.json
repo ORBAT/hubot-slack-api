@@ -4,7 +4,7 @@
   "description": "Slack API call extension for Hubot",
   "main": "index.js",
   "bin": {
-    "slackage": "./bin/slacker.js"
+    "slackage": "./bin/slackage.js"
   },
   "repository": {
     "type": "git",
