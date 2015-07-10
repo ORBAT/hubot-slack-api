@@ -9,6 +9,8 @@ option.
 Slackage will output JSON by default, but for example arrays can be printed in a shell-friendly format (just text
 separated by newlines) with `-x`.
 
+To install slackage, run `npm install -g hubot-slack-api`
+
 ## Options
 
 ```
