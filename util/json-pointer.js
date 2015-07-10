@@ -23,8 +23,6 @@ function iter(obj, ptr) {
 
     // this is the last accessor in the chain: this is where we want the value from
     if(restPtrs.length === 0) {
-      //console.log("Returning from", inspect(obj), "using", currPtr);
-
 
       if(!jp.has(obj, currPtr)) {
         return undefined;
@@ -45,15 +43,33 @@ function iter(obj, ptr) {
 
   var res = inner(_.head(byStars), _.tail(byStars), obj);
 
-  if(!shouldCompact) {
-    return _.flatten(res);
+  if(_.isArray(res)) {
+    res = _.flatten(res);
+    if(!shouldCompact) {
+      return res;
+    }
+
+    return _.compact(res);
+  } else {
+    return res;
   }
 
-  return _.compact(_.flatten(res));
 }
 
 function filter(obj, ptr, value) {
   var byStars = ptr.split(/\*\??/);
+
+  if(byStars.length == 1) {
+    // if there were no * accessors, we need to return the last object the JSON pointer matched, so a filter of
+    // /user/has_files should only return the /user object
+    var fst = byStars[0];
+    if(jp.has(obj, fst) && jp.get(obj, fst) == parseVal(value)) { // see comment below
+      // tail to get rid of empty element caused by intial / in ptr, dropRight to get a pointer to whatever encloses
+      // the last accessor
+      var toks = _.dropRight(_.tail(fst.split("/")), 1);
+      return jp.get(obj, jp.compile(toks));
+    }
+  }
 
   function inner(currPtr, restPtrs, acc, obj) {
 
@@ -63,7 +79,7 @@ function filter(obj, ptr, value) {
 
     // last accessor: if obj has value at currPtr, add obj to the accumulator
     if (restPtrs.length === 0) {
-      if (jp.has(obj, currPtr) && jp.get(obj, currPtr) == value) {
+      if (jp.has(obj, currPtr) && jp.get(obj, currPtr) == parseVal(value)) { // lol too drunk to think this through: why am I always getting a string as a value
         acc.push(obj);
       }
 
@@ -94,3 +110,19 @@ function addSlash(ptr) {
 }
 
 exports.addSlash = addSlash;
+
+function parseVal(val) {
+  var v;
+  if (/true|false/.test(val)) {
+    v = val === 'true';
+  } else {
+    var n = Number(val);
+    if (!_.isNaN(n))
+      v = n;
+    else
+      v = val;
+  }
+  return v;
+}
+
+exports.parseVal = parseVal;
