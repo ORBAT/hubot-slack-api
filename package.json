@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "description": "Slack API call extension for Hubot",
   "main": "index.js",
+  "bin": {
+    "slacker": "./bin/slacker.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/ORBAT/hubot-slack-api.git"
@@ -22,8 +25,11 @@
   "homepage": "https://github.com/ORBAT/hubot-slack-api#readme",
   "dependencies": {
     "bluebird": "^2.9.30",
+    "json-pointer": "^0.3.0",
     "lodash": "^3.10.0",
-    "request": "^2.58.0"
+    "nomnom": "^1.8.1",
+    "request": "^2.58.0",
+    "yargs": "^3.15.0"
   },
   "peerDependencies": {
     "hubot": "^2.13.2"
