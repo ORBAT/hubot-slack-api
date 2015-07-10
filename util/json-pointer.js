@@ -55,48 +55,58 @@ function iter(obj, ptr) {
   }
 
 }
+var isRe = /\/.*?\/[a-zA-Z]*/;
+
+function _check(obj, ptr, val) {
+  if(!jp.has(obj, ptr)) {
+    return false;
+  }
+
+  var got = jp.get(obj, ptr);
+
+  if(isRe.test(val)) {
+    var lastSlash = _.lastIndexOf(val, '/')
+      , pattern = _.initial(_.rest(val)).join('').substring(0,lastSlash - 1)
+      , flags = val.substring(lastSlash + 1)
+      , re = new RegExp(pattern, flags);
+
+    return re.test(got);
+  }
+
+  return jp.get(obj, ptr) == val;
+}
 
 function filter(obj, ptr, value) {
   var byStars = ptr.split(/\*\??/);
 
   if(byStars.length == 1) {
-    // if there were no * accessors, we need to return the last object the JSON pointer matched, so a filter of
-    // /user/has_files should only return the /user object
-    var fst = byStars[0];
-    if(jp.has(obj, fst) && jp.get(obj, fst) == parseVal(value)) { // see comment below
-      // tail to get rid of empty element caused by intial / in ptr, dropRight to get a pointer to whatever encloses
-      // the last accessor
-      var toks = _.dropRight(_.tail(fst.split("/")), 1);
-      return jp.get(obj, jp.compile(toks));
+    // if there were no * accessors, just return the entire object if it matches
+    if(_check(byStars[0])) {
+      return obj;
     }
   }
 
-  function inner(currPtr, restPtrs, acc, obj) {
-
-    if (acc == null) {
-      acc = [];
-    }
-
-    // last accessor: if obj has value at currPtr, add obj to the accumulator
-    if (restPtrs.length === 0) {
-      if (jp.has(obj, currPtr) && jp.get(obj, currPtr) == parseVal(value)) { // lol too drunk to think this through: why am I always getting a string as a value
-        acc.push(obj);
-      }
-
-      return acc;
+  function inner(currPtr, restPtrs, obj) {
+    // this is the last accessor in the chain: if this matches, return true
+    if(restPtrs.length === 0) {
+      return _check(obj, currPtr, value);
+      //return jp.has(obj, currPtr) && (jp.GET(obj, currPtr) == value);
     }
 
     var trimmed = trim(currPtr);
 
-    // not the last accessor: get every element pointed to by currPtr and recurse down restPtrs
-    if (jp.has(obj, trimmed)) {
-      return _.map(jp.get(obj, trimmed), _.partial(inner, _.head(restPtrs), _.tail(restPtrs), null))
+    if(jp.has(obj, trimmed)) {
+      var got = jp.get(obj, trimmed);
+      return _.filter(got, _.partial(inner, _.head(restPtrs), _.tail(restPtrs)))
     }
-
     return [];
   }
 
-  return _.flattenDeep(inner(_.head(byStars), _.tail(byStars), [], obj));
+  var o = {};
+
+  jp.set(o, trim(_.head(byStars)), inner(_.head(byStars), _.tail(byStars), obj));
+
+  return o;
 }
 
 exports.filter = filter;
@@ -111,18 +121,3 @@ function addSlash(ptr) {
 
 exports.addSlash = addSlash;
 
-function parseVal(val) {
-  var v;
-  if (/true|false/.test(val)) {
-    v = val === 'true';
-  } else {
-    var n = Number(val);
-    if (!_.isNaN(n))
-      v = n;
-    else
-      v = val;
-  }
-  return v;
-}
-
-exports.parseVal = parseVal;

@@ -10,7 +10,6 @@ var jp = require("json-pointer");
 var addSlash = putil.addSlash;
 var filter = putil.filter;
 var iter = putil.iter;
-var parseVal = putil.parseVal;
 
 var inspect = _.partialRight(require("util").inspect, {depth: 10});
 
@@ -40,10 +39,8 @@ var argv = require("yargs")
     "Use this JSON pointer (e.g. /channel/topic) to select what to output. To get a certain property "
     + "of each element of an array, like when calling channels.list, use /channels/*/name. "
     + "\nTo filter out falsy values, use *? in place of *: slackage users.list -o /members/*?/profile/skype would "
-    + "return the skype name of all users in a team, and no undefined values. If -o and -f are both "
-    + "supplied, the filter will be applied first, and -o will apply to the results of the filter: "
-    + " slackage users.info -xp user U66666666 -vf user/has_files true -o /name would return the name of the user from "
-    + "inside the user object.\n"
+    + "return the skype name of all users in a team who have one. If -o and -f are both "
+    + "supplied, the filter will be applied first, and -o will apply to the results of the filter. "
     + "Can be supplied multiple times")
 
     .boolean("text")
@@ -53,11 +50,15 @@ var argv = require("yargs")
     .alias("f", "filter")
     .nargs("filter", 2)
     .describe("filter",
-    "Output objects for which JSON pointer matches a value: slackage -u /members/*/deleted true users.list "
-    + "would only output user objects for which deleted is true.\n"
-    + "Can only be supplied ONCE")
-    .epilogue("Exit code will be 0 if API call executed successfully, 1 if there was an argument error, 2 " +
-              "if the API call couldn't be made, and 3 if the API call returned an error")
+    "Output objects for which JSON pointer matches a value: slackage -f /members/*/deleted true users.list "
+    + "would only output user objects for which deleted is true. The value can also be a regex: "
+    + "slackage users.list -xf /members/*/tz /^america\//i -o /members/*/name would output the user name of all users "
+    + " who have their time zone set to something in the US."
+    + "\nCan only be supplied ONCE")
+    .epilogue(
+    "The first non-option parameter will be used as the method name: slackage users.list -o ..."
+    + "\n\nExit code will be 0 if API call executed successfully, 1 if there was an argument error, 2 "
+    +"if the API call couldn't be made, and 3 if the API call returned an error")
     .strict()
     .argv
   ;
@@ -94,6 +95,20 @@ if (_.isArray(argv.filter) && argv.filter.length > 2) {
   process.exit(ERR_ARG);
 }
 
+function parseVal(val) {
+  var v;
+  if (/true|false/.test(val)) {
+    v = val === 'true';
+  } else {
+    var n = Number(val);
+    if (!_.isNaN(n))
+      v = n;
+    else
+      v = val;
+  }
+  return v;
+}
+
 function pickUsingPtrs(obj, ptrs) {
   if (!_.isArray(ptrs)) ptrs = [ptrs];
 
@@ -108,7 +123,6 @@ function pickUsingPtrs(obj, ptrs) {
 }
 
 function textify(obj) {
-  debug("textifying", inspect(obj));
   if (_.isArray(obj))
     return _.map(obj, textify).join("\n");
   else if (_.isObject(obj))
@@ -124,7 +138,6 @@ function paramsToObj(params) {
     ptr = addSlash(ptr);
     var v = parseVal(val);
     jp.set(acc, ptr, v);
-
     return acc;
   }, {});
 }
@@ -134,21 +147,16 @@ var paramsFromOpts = argv.param ? paramsToObj(argv.param) : {}; // allow not hav
 debug("Calling API method", cmd," with parameters ", inspect(paramsFromOpts));
 
 fn(paramsFromOpts)
-  .catch(function (e) {
-    error("Error with call to", cmd, "with params", inspect(paramsFromOpts));
-    process.exit()
+  .catch(function () {
+    process.exit(ERR_API)
   })
   .then(function (out) {
     debug("API call successful");
-    if (!out.ok) {
-      error("API call returned error:", inspect(out));
-      process.exit(ERR_API);
-    }
 
     var filtered;
 
     if (argv.filter) {
-      filtered = filter(out, addSlash(argv.filter[0]), argv.filter[1]);
+      filtered = filter(out, addSlash(argv.filter[0]), parseVal(argv.filter[1]));
     } else {
       filtered = out;
     }
@@ -163,7 +171,7 @@ fn(paramsFromOpts)
     var result;
 
     if (!argv.text) {
-      result = inspect(outObj)
+      result = JSON.stringify(outObj, null, 2);
     } else {
       result = textify(outObj);
     }
