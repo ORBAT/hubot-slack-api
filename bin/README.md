@@ -67,9 +67,15 @@ slackage users.list -xf /members/*/profile/skype someskypename -o /members/*/nam
 ### List all the admins who are currently active
 
 ```
-slackage users.list -xf /members/*/is_admin true -o /members/*/id
 slackage users.list -xf /members/*/is_admin true -o /members/*/id |\
 xargs -I{} bash -c 'res=$(./bin/slackage.js -x users.getPresence -p user {}\
  -o presence); if [ $res = 'active' ]; then echo {}; fi'|\
 xargs -I{} slackage users.info -xp user {} -o user/name
+```
+
+### Get the Slack username of everyone who has done a git commit in the last two weeks
+
+```
+git log --since="2 weeks ago" --format=%aE|sort -u|xargs -I{} slackage users.list -xf \
+/members/*/profile/email {} -o /members/*/name
 ```

@@ -15,7 +15,9 @@
     "slack",
     "api",
     "wrapper",
-    "extension"
+    "extension",
+    "cli",
+    "command line"
   ],
   "author": "Tom Eklöf <tome@unity3d.com>",
   "license": "MIT",
