@@ -38,9 +38,7 @@ var tokenEnv = process.env.HUBOT_SLACK_API_TOKEN || process.env.HUBOT_SLACK_TOKE
 
 module.exports = function(robot) {
   robot.logger.debug("Adding Slack API to robot instance");
-  robot.slack = exports.generateApiCalls(null, null, robot);
-
-  ;
+  robot.slack = generateApiCalls(null, null, robot);
 };
 
 module.exports.generateApiCalls = generateApiCalls;
