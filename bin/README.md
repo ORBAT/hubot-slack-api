@@ -47,35 +47,27 @@ returned an error
 
 ## Examples
 
-### Get the username of all users who don't have a skype username set
-
-```
-slackage users.list -xf /members/*/profile/skype /^$/i -o /members/*/name
-someusername
-othername
-morenames
-lalala
-...
-```
-
-Or as JSON:
-
-```
-slackage users.list -f /members/*/profile/skype /^$/i -o /members/*/name
-[
-  "someusername",
-  "othername",
-  "morenames",
-  "lalala",
-  ...
-]
-```
-
 ### Message everyone who doesn't have a title in their profile
 ```
 slackage users.list -xf /members/*/profile/title /^$/i -o /members/*/id |\
 xargs -I{} slackage im.open -xp user {} -o channel/id |\
 xargs -I{} slackage chat.postMessage -xp as_user true -p channel {} -p text\
-'Please add a title to your profile' -o channel |\
+'Please add a title to your profile, kthxbai' -o channel |\
 xargs -I{} slackage im.close -p channel {}
+```
+
+### Get the Slack username of the user whose Skype name matches something
+
+```
+slackage users.list -xf /members/*/profile/skype someskypename -o /members/*/name
+```
+
+### List all the admins who are currently active
+
+```
+slackage users.list -xf /members/*/is_admin true -o /members/*/id
+slackage users.list -xf /members/*/is_admin true -o /members/*/id |\
+xargs -I{} bash -c 'res=$(./bin/slackage.js -x users.getPresence -p user {}\
+ -o presence); if [ $res = 'active' ]; then echo {}; fi'|\
+xargs -I{} slackage users.info -xp user {} -o user/name
 ```
