@@ -6,10 +6,7 @@
 //
 //
 // Commands:
-//   hubot post attachment - posts a message with an attachment. Recognizes arguments in the form [argument name]
-//   "[content]". Allowed arguments are fallback, color, pretext, author_name, author_link, author_icon, title,
-//   title_link, text, image_url, thumb_url.
-//   Example: @hubot post attachment text "Attachment body" pretext "some pretext" title "this link goes to reddit" title_link "http://reddit.com" thumb_url "https://i.imgur.com/1z08u41.jpg" color "#FF0000 " author_name "Tom" fallback "NO ATTACHMENT FOR YOU!"
+//   hubot post attachment - posts a message with an attachment. Recognizes arguments in the form [argument name] "[content]". Allowed arguments are fallback, color, pretext, author_name, author_link, author_icon, title,\ntitle_link, text, image_url, thumb_url. Example: @hubot post attachment text "Attachment body" pretext "some pretext" title "this link goes to reddit" title_link "http://reddit.com" thumb_url "https://i.imgur.com/1z08u41.jpg" color "#FF0000 " author_name "Tom" fallback "NO ATTACHMENT FOR YOU!"
 //
 //
 // Author:
