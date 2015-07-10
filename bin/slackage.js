@@ -1,6 +1,4 @@
-/**
- * Created by teklof on 9.7.15.
- */
+#!/usr/bin/env node
 var _ = require('lodash');
 var $ = require('highland');
 var putil = require("../util/json-pointer");
