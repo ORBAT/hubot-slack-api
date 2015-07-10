@@ -73,10 +73,10 @@ function generateApiCalls(calls, token, robot) {
 
       acc[group][v[1]] = function (args, callback) {
         var callName = v.join('.');
-
+        var paramsNoTok = _.defaults(_.omit(args, "token"), {token: "[CENSORED]"});
         if (this.logger)
           this.logger.debug("Doing Slack API call to " + callName + " with args " +
-                            inspect(_.defaults(_.omit(args, "token"), {token: "[CENSORED]"})));
+                            inspect(paramsNoTok));
 
 
         return req.postAsync(postUrl + callName, {form: _.defaults(args, {token: token || tokenEnv})})
@@ -87,7 +87,8 @@ function generateApiCalls(calls, token, robot) {
 
             if (!body.ok) {
               if(this.logger)
-                this.logger.error("Error calling " + callName + ": " + body.error);
+                this.logger.error("Error calling " + callName + " with params " + inspect(paramsNoTok) +
+                                  ": "+ body.error);
 
               throw new Error(body.error);
             }
