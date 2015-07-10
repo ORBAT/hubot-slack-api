@@ -34,42 +34,74 @@ var apiCalls = ["api.test", "auth.test", "channels.archive", "channels.create", 
 
 var postUrl = "https://slack.com/api/";
 
-var token = process.env.HUBOT_SLACK_API_TOKEN || process.env.HUBOT_SLACK_TOKEN;
+var tokenEnv = process.env.HUBOT_SLACK_API_TOKEN || process.env.HUBOT_SLACK_TOKEN;
 
 module.exports = function(robot) {
   robot.logger.debug("Adding Slack API to robot instance");
-  robot.slack = _(apiCalls)
-    .map(function(str) {
+  robot.slack = exports.generateApiCalls(null, null, robot);
+
+  ;
+};
+
+module.exports.generateApiCalls = generateApiCalls;
+module.exports.apiCalls = apiCalls;
+
+/**
+ * Creates an object that wraps Slack web API method calls. Each API call lives in a subobject corresponding to the
+ * first part of the API call name, so for example `channels.list` is `generateApiCalls().channels.list()`.
+ * Each method has the signature `function(args, callback)`. The argument object keys should be API argument names,
+ * and the callback should have the signature `function(err, res)`. If the callback is omitted a
+ * [bluebird](https://github.com/petkaantonov/bluebird) `Promise` is returned.
+ *
+ * @param {Array} [calls] Optional array of strings like ["api.test", "channels.join"] to specify which API calls to
+ * include. Leave out to use the default list of API calls (export.apiCalls).
+ *
+ * @param {String} [token] Optional Slack token to use. Leave out to get token from
+ * HUBOT_SLACK_API_TOKEN || HUBOT_SLACK_TOKEN
+ *
+ * @return {*} Object with Slack web API call subobjects
+ */
+function generateApiCalls(calls, token, robot) {
+
+  return _(calls || apiCalls)
+    .map(function (str) {
       return str.split('.');
     })
-    .reduce(function(acc,v) {
+    .reduce(function (acc, v) {
       var group = v[0];
-      if(!acc[group]) {
+      if (!acc[group]) {
         acc[group] = {};
       }
 
-      acc[group][v[1]] = function(args, callback) {
+      acc[group][v[1]] = function (args, callback) {
         var callName = v.join('.');
-        this.logger.debug("Doing Slack API call to " + callName + " with args " +
-                          inspect(_.defaults(_.omit(args, "token"), {token: "[CENSORED]"})));
-        return req.postAsync(postUrl + callName, {form: _.defaults(args, {token: token})})
-          .spread(function(res, body) {
+
+        if (this.logger)
+          this.logger.debug("Doing Slack API call to " + callName + " with args " +
+                            inspect(_.defaults(_.omit(args, "token"), {token: "[CENSORED]"})));
+
+
+        return req.postAsync(postUrl + callName, {form: _.defaults(args, {token: token || tokenEnv})})
+          .spread(function (res, body) {
             return JSON.parse(body);
           })
           .then(function (body) {
 
-          if(!body.ok) {
-            this.logger.error("Error calling " + callName + ": " + body.error);
-            throw new Error(body.error);
-          }
+            if (!body.ok) {
+              if(this.logger)
+                this.logger.error("Error calling " + callName + ": " + body.error);
 
-          this.logger.debug("Slack API call to " + callName + " ok");
-          return body;
-        }.bind(this)).nodeify(callback);
+              throw new Error(body.error);
+            }
+
+            if(this.logger)
+              this.logger.debug("Slack API call to " + callName + " ok");
+
+            return body;
+          }.bind(this)).nodeify(callback);
       }.bind(this);
 
       return acc;
 
-  }.bind(robot), {})
-  ;
+    }.bind(robot), {})
 };
