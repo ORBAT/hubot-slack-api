@@ -3,8 +3,13 @@
  */
 var _ = require('lodash');
 var $ = require('highland');
-var iter = require("../util/pointer-iter");
-var js = require("json-pointer");
+var putil = require("../util/json-pointer");
+
+var jp = require("json-pointer");
+
+var addSlash = putil.addSlash;
+var filter = putil.filter;
+var iter = putil.iter;
 
 var inspect = _.partialRight(require("util").inspect, {depth: 10});
 
@@ -38,7 +43,7 @@ var argv = require("yargs")
 
     .alias("u", "fltout")
     .nargs("fltout", 2)
-    .describe("fltout", "Only output if value at JSON pointer matches: slacker -u /members/*/deleted true users.list. "
+    .describe("fltout", "Output objects which JSON pointer matches: slacker -u /members/*/deleted true users.list. "
                         + "Can be supplied multiple times")
 
     .strict()
@@ -77,17 +82,6 @@ if(!fn) {
 
 debug("API method", cmd);
 
-function addSlash(ptr) {
-  if (ptr[0] != "/") {
-    ptr = "/" + ptr;
-  }
-  return ptr;
-}
-
-function filterByPtr(obj, ptr) {
-  
-}
-
 function pickUsingPtrs(obj, ptrs) {
   if(!_.isArray(ptrs)) ptrs = [ptrs];
 
@@ -107,6 +101,20 @@ function pickUsingPtrs(obj, ptrs) {
   return out;
 }
 
+function parseVal(val) {
+  var v;
+  if (/true|false/.test(val)) {
+    v = val === 'true';
+  } else {
+    var n = Number(val);
+    if (!_.isNaN(n))
+      v = n;
+    else
+      v = val;
+  }
+  return v;
+}
+
 function paramsToObj(params) {
   if(!_.isArray(params)) params = [params];
 
@@ -116,19 +124,8 @@ function paramsToObj(params) {
     ptr = addSlash(ptr);
     debug("Adding", ptr, val, "into", inspect(acc));
 
-    var v;
-
-    if(/true|false/.test(val)) {
-      v = val === 'true';
-    } else {
-      var n = Number(val);
-      if(!_.isNaN(n))
-        v = n;
-      else
-        v = val;
-    }
-
-    js.set(acc, ptr, v);
+    var v = parseVal(val);
+    jp.set(acc, ptr, v);
 
     return acc;
   }, {});
