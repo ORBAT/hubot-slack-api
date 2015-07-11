@@ -27,6 +27,7 @@
   "homepage": "https://github.com/ORBAT/hubot-slack-api#readme",
   "dependencies": {
     "bluebird": "^2.9.30",
+    "highland": "^2.5.1",
     "json-pointer": "^0.3.0",
     "lodash": "^3.10.0",
     "nomnom": "^1.8.1",
